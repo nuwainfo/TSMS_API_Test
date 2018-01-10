@@ -1,6 +1,6 @@
 #!/usr/bin/env ipy
 # -*- coding: utf-8 -*-
-# $Id: Monitor.py 660 2013-09-25 07:34:32Z Bear $
+# $Id: Monitor.py 1799 2018-01-08 08:07:28Z Kevin $
 
 import sys
 
@@ -309,8 +309,29 @@ def f2_2_7():
     showTable(view.MonitorRepairInfoRecords)
     print
             
-    return view      
+    return view
+
+def f2_2_8():
+    monitorType = 9
+
+    from System import Array
+    from System import DateTime
+
+    installInfos = TSMS_API.Monitor.Service.FindMonitorInstallInfo(
+        tunnelId, monitorType, 0)
+    installInfoId = installInfos[0].Key  # 1
+
+    arrayDates = Array[DateTime]([
+        TSMS_API.Monitor.Service.GetMicroDispSurveyDate(tunnelId, installInfoId)[0].Value])
+
+    view = monitorSrv.QueryWebView8(tunnelId, monitorType, installInfoId, arrayDates, 1)
+
+    print view.InstallInfo
+    print view.microDispRecords
+    print view.XYChart
+
+    return view
+
 
 if __name__ == '__main__':
-    showMainMenu('2.2', 7, locals())
-    
+    showMainMenu('2.2', 8, locals())

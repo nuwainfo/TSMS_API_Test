@@ -1,6 +1,6 @@
 #!/usr/bin/env ipy
 # -*- coding: utf-8 -*-
-# $Id: Inspect.py 1028 2015-10-14 07:51:59Z Bear $
+# $Id: Inspect.py 1794 2018-01-03 06:35:20Z Kevin $
 
 import sys
 
@@ -220,8 +220,97 @@ def f2_3_4():
     showTable(view.OtherStructureRecord, others=[('照片', 'Photo'),], output='234.txt')
     print
 
-    return view        
-    
+    return view
+
+
+def f2_3_5():
+    # 北工處
+    enginerringOffice = TSMS_API.Web.QueryService.FindALLEngineeringOffice()[0]
+    enginerringOfficeId = enginerringOffice.Key
+
+    # 石碇隧道
+    tunnel = TSMS_API.Web.QueryService.FindTunnelsByEnginerringOffice(enginerringOfficeId)[1]
+    tunnelId = tunnel.Key
+    sectionId = TSMS_API.API.Service.FindSectionidByTunid(tunnelId)
+    tunnelHierarcy = TSMS_API.Web.QueryService.GetTunnelHierarcy(tunnelId)
+    print '工程處: %s (%d)' % (tunnelHierarcy.engineeringOffice, enginerringOfficeId)
+    print '工務段: %s (%d)' % (tunnelHierarcy.section, sectionId)
+    print '國道: %s' % tunnelHierarcy.freeway
+    print '遂道: %s (%d)' % (tunnel.Value, tunnelId)
+
+    # 南下線管線廊道
+    structure = TSMS_API.Web.QueryService.FindGalleryStructures(tunnelId)[0]
+    structureId = structure.Key
+    print '結構物: %s (%d)' % (structure.Value, structureId)
+
+    proj = TSMS_API.Web.QueryService.FindProjectsByGallery(structureId)[0]
+    projId = proj.Key
+    print '本期檢測專案: %s (%d)' % (proj.Value, projId)
+
+    # GS001
+    startSector = TSMS_API.Web.QueryService.FindSectors(structureId)[0]
+    print '區段編號(自): %s (%d)' % (startSector.Value, startSector.Key)
+
+    # GS008
+    endSector = TSMS_API.Web.QueryService.FindSectors(structureId)[7]
+    print '區段編號(至): %s (%d)' % (endSector.Value, endSector.Key)
+
+    view = inspectSrv.QueryWebView5(tunnelId, structureId, projId,
+                                    startSector.Key, endSector.Key)
+    print
+
+    print "損傷圖右半部:"
+    print view.TunWallMap
+    print
+
+    print "損傷圖左半部:"
+    print view.TunRoadMap
+    print
+
+    print "控制點測量表:"
+    showTable(view.TunInjureRecord, others=[('照片', 'Photo'), ])
+    print
+
+    return view
+
+
+def f2_3_6():
+    # 北工處
+    enginerringOffice = TSMS_API.Web.QueryService.FindALLEngineeringOffice()[0]
+    enginerringOfficeId = enginerringOffice.Key
+
+    # 彭山隧道
+    tunnel = TSMS_API.Web.QueryService.FindTunnelsByEnginerringOffice(enginerringOfficeId)[3]
+    tunId = tunnel.Key
+
+    # 北上線
+    structures = TSMS_API.API.Service.FindStructuresName(tunId, 0)
+    structureId = structures[1].Key
+
+    #
+    projects = TSMS_API.API.Service.FindProjectsByStructure(tunId, structureId)
+    projectId = projects[0].Key
+
+    # N046 ~ N056
+    sectors = TSMS_API.API.Service.FindSectorName(structureId, 0)
+    sectorStartId = sectors[45].Key
+    sectorEndId = sectors[55].Key
+
+    #
+    startStation = TSMS_API.API.Service.FindStationBySectorid(tunId, sectorStartId)[0].Value
+    endStation = TSMS_API.API.Service.FindStationBySectorid(tunId, sectorEndId)[0].Value
+
+    print startStation
+    print endStation
+
+    # search
+    view = inspectSrv.QueryWebView6(tunId, projectId, sectorStartId, sectorEndId)
+    print view.DistFile
+    for r in view.ImageInfoRecord.Rows:
+        print r.Key, r.Value
+
+    return view
+
+
 if __name__ == '__main__':
-    showMainMenu('2.3', 4, locals())
-    
+    showMainMenu('2.3', 6, locals())

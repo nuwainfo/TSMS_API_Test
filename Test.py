@@ -1,6 +1,6 @@
 #!/usr/bin/env ipy
 # -*- coding: utf-8 -*-
-# $Id: Test.py 1090 2015-12-16 08:35:54Z Bear $
+# $Id: Test.py 1797 2018-01-05 13:55:37Z Kevin $
 
 import unittest
 
@@ -103,6 +103,15 @@ class TestMonitor(unittest.TestCase):
         
         self.assertTrue(v.MonitorRepairInfoRecords)
 
+    def test2_2_8(self):
+        from Monitor import f2_2_8
+
+        v = f2_2_8()
+
+        self.assertTrue(v.InstallInfo)
+        self.assertTrue(v.microDispRecords)
+        self.assertTrue(v.XYChart)
+
 class TestInspect(unittest.TestCase):
 
     def test2_3_1(self):
@@ -142,7 +151,24 @@ class TestInspect(unittest.TestCase):
         self.assertTrue(v.Sta2)
         self.assertTrue(v.RefPhoto1)
         self.assertTrue(v.RefPhoto2)     
-        self.assertTrue(v.OtherStructureRecord)    
+        self.assertTrue(v.OtherStructureRecord)
+
+    def test2_3_5(self):
+        from Inspect import f2_3_5
+
+        v = f2_3_5()
+
+        self.assertTrue(v.TunWallMap)
+        self.assertTrue(v.TunRoadMap)
+        self.assertTrue(v.TunInjureRecord)
+
+    def test2_3_6(self):
+        from Inspect import f2_3_6
+
+        v = f2_3_6()
+
+        self.assertTrue(v.ImageInfoRecord)
+        self.assertTrue(v.DistFile)
 
 class TestShaft(unittest.TestCase):
 
@@ -154,7 +180,7 @@ class TestShaft(unittest.TestCase):
         self.assertTrue(v.Labels)
         self.assertTrue(v.Values)
         self.assertTrue(v.ShaftRecords)
-        self.assertTrue(v.RefImage)        
+        self.assertTrue(v.RefImage)
         self.assertTrue(v.MediaRecords)
         
         
