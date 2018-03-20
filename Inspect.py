@@ -1,8 +1,9 @@
 #!/usr/bin/env ipy
 # -*- coding: utf-8 -*-
-# $Id: Inspect.py 1794 2018-01-03 06:35:20Z Kevin $
+# $Id: Inspect.py 1840 2018-03-20 22:41:14Z Kevin $
 
-import sys
+import clr
+import datetime
 
 from API import TSMS_API
 from API import tunnelId
@@ -10,10 +11,52 @@ from API import tunnelId
 from API import showTable, showChart, showMainMenu
 
 inspectSrv = TSMS_API.Web.Inspect.Service
-
 structure = TSMS_API.Web.QueryService.FindStructures(tunnelId)[2] # 導坑
 structureId = structure.Key
 print '結構物: %s (%d)' % (structure.Value, structureId)
+
+
+def _log(theFunction):
+    def _wrapper(*args, **kwds):
+        try:
+            returnval = theFunction(*args, **kwds)
+            return returnval
+        except Exception as e:
+            paramsDict = {}
+            params = None
+
+            # https://stackoverflow.com/questions/10920499/
+            # get-built-in-method-signature-python
+
+            clrType = clr.GetClrType(inspectSrv)
+            for m in clrType.GetMethods():
+                if m.Name == theFunction.__name__:
+                    params = m.GetParameters()
+
+            for i in range(params.Count):
+                if i == len(args):
+                    # 沒有預設值會回傳物件 DBNull
+                    if params[i].DefaultValue.GetTypeCode() \
+                            != 'System.TypeCode.DBNull':
+                        break
+
+                paramsDict.update({
+                    params[i].Name: args[i]})
+
+            msg = '例外類別：' + str(e)
+            msg += '\n時間：' + str(datetime.datetime.now())
+            msg += ('\n出錯函式：TSMS_API.Web.Inspect.Service.{}({})'.format(
+                theFunction.__name__,
+                ', '.join(['{}={}'.format(k, v) for k, v in paramsDict.items()])
+            ))
+            msg += '\n詳細 API 呼叫的參數及過程請參照 "API.log"'
+
+            # https://stackoverflow.com/questions/
+            # 6062576/adding-information-to-an-exception
+            e.args = (msg,)
+            raise e
+    return _wrapper
+
 
 def f2_3_1():
     # 100 年第1階段
@@ -133,58 +176,60 @@ def f2_3_2():
     showView(view3)    
 
     return view        
-    
+
+
 def f2_3_3():
     # 導坑
-    structure = TSMS_API.Web.QueryService.FindStructures(tunnelId)[2]
+    structure = _log(TSMS_API.Web.QueryService.FindStructures)(tunnelId)[2]
     structureId = structure.Key
-    print '結構體名稱: %s (%d)' % (structure.Value, structureId)    
-    
+    print '結構體名稱: %s (%d)' % (structure.Value, structureId)
+
     # 100 年第1階段
-    proj = TSMS_API.Web.QueryService.FindProjects(structureId)[0]
+    proj = _log(TSMS_API.Web.QueryService.FindProjects)(structureId)[0]
     projId = proj.Key
     print '本期檢測專案: %s (%d)' % (proj.Value, projId)
-    
+
     # S001
-    startSector = TSMS_API.Web.QueryService.FindSectors(structureId)[0]
-    print '區段編號(自): %s (%d)' % (startSector.Value, startSector.Key)    
-    
+    startSector = _log(TSMS_API.Web.QueryService.FindSectors)(structureId)[0]
+    print '區段編號(自): %s (%d)' % (startSector.Value, startSector.Key)
+
     # S005
-    endSector = TSMS_API.Web.QueryService.FindSectors(structureId)[4]
-    print '區段編號(至): %s (%d)' % (endSector.Value, endSector.Key)    
-        
-    view = inspectSrv.QueryWebView3(tunnelId, structureId, projId, startSector.Key, endSector.Key)
+    endSector = _log(TSMS_API.Web.QueryService.FindSectors)(structureId)[4]
+    print '區段編號(至): %s (%d)' % (endSector.Value, endSector.Key)
+
+    view = _log(inspectSrv.QueryWebView3)(
+        tunnelId, structureId, projId, startSector.Key, endSector.Key)
     print
-        
+
     print "區段健全度資料表:"
     showTable(view.TunSectorEvaluationRecord)
     print
-    
+
     print "出露損傷數量百分比圖:"
     showChart(view.TunInjurePercentCalChart)
-    print    
-    
+    print
+
     print "區段損傷評定資料總表:"
     showTable(view.RecordData)
-    print    
-    
+    print
+
     if view.RecordDataChart:
         print "區段損傷評定統計圖:"
         showChart(view.RecordDataChart)
-        print   
+        print
 
     print "異狀摘要表:"
     showTable(view.RecordData2)
     print
-        
+
     print "區段出露損傷尺寸統計圖:"
     for i, r in enumerate(view.RecordData2.Rows):
         print i + 1, '=>'
         showChart(r.Chart)
-    print 
+    print
 
-    return view           
-    
+    return view
+
 def f2_3_4():
     # 主線南洞口
     otherStructure = inspectSrv.FindOtherStructures(tunnelId)[0]
@@ -305,7 +350,7 @@ def f2_3_6():
 
     # search
     view = inspectSrv.QueryWebView6(tunId, projectId, sectorStartId, sectorEndId)
-    print view.DistFile
+
     for r in view.ImageInfoRecord.Rows:
         print r.Key, r.Value
 

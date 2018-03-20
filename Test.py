@@ -1,10 +1,17 @@
 #!/usr/bin/env ipy
 # -*- coding: utf-8 -*-
-# $Id: Test.py 1797 2018-01-05 13:55:37Z Kevin $
+# $Id: Test.py 1840 2018-03-20 22:41:14Z Kevin $
 
 import unittest
+import datetime
 
 from API import TSMS_API
+
+def getMessage(objectName, attrName):
+    msg = ('\n{}.{} 物件為空，請參考 "API.log"'
+           '\n尋找缺少的物件屬性是從哪個 API 及參數獲得').format(objectName, attrName)
+    msg += '\n時間： ' + str(datetime.datetime.now()) + ')'
+    return msg
 
 class TestAPI(unittest.TestCase):
 
@@ -136,11 +143,17 @@ class TestInspect(unittest.TestCase):
         from Inspect import f2_3_3
         
         v = f2_3_3()
+
+        objectName = 'Inspect.WebView3'
         
-        self.assertTrue(v.TunSectorEvaluationRecord)
-        self.assertTrue(v.TunInjurePercentCalChart)  
-        self.assertTrue(v.RecordData)  
-        self.assertTrue(v.RecordData2)  
+        self.assertTrue(v.TunSectorEvaluationRecord,
+                        msg=getMessage(objectName, 'TunSectorEvaluationRecord'))
+        self.assertTrue(v.TunInjurePercentCalChart,
+                        msg=getMessage(objectName, 'TunInjurePercentCalChart'))
+        self.assertTrue(v.RecordData,
+                        msg=getMessage(objectName, 'RecordData'))
+        self.assertTrue(v.RecordData2,
+                        msg=getMessage(objectName, 'RecordData2'))
         
     def test2_3_4(self):
         from Inspect import f2_3_4
@@ -168,7 +181,6 @@ class TestInspect(unittest.TestCase):
         v = f2_3_6()
 
         self.assertTrue(v.ImageInfoRecord)
-        self.assertTrue(v.DistFile)
 
 class TestShaft(unittest.TestCase):
 
@@ -253,7 +265,8 @@ class TestBookbase(unittest.TestCase):
         self.assertTrue(m.Level1)
         self.assertTrue(m.Level2)
         self.assertTrue(m.Method)
-        self.assertTrue(m.PriceAnalysisRecords)
+        self.assertTrue(m.PriceAnalysisRecords, getMessage(
+            'Bookbase.WebView4', 'PriceAnalysisRecords'))
         
     def test2_9_5(self):
         from Bookbase import f2_9_5

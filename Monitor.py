@@ -1,6 +1,6 @@
 #!/usr/bin/env ipy
 # -*- coding: utf-8 -*-
-# $Id: Monitor.py 1799 2018-01-08 08:07:28Z Kevin $
+# $Id: Monitor.py 1809 2018-01-10 07:38:58Z Kevin $
 
 import sys
 
@@ -326,9 +326,14 @@ def f2_2_8():
 
     view = monitorSrv.QueryWebView8(tunnelId, monitorType, installInfoId, arrayDates, 1)
 
+    print '地質資訊'
     print view.InstallInfo
-    print view.microDispRecords
-    print view.XYChart
+
+    print '微變位資料'
+    showTable(view.microDispRecords)
+
+    print '微變位圖'
+    showChart(view.XYChart, attr='XYValues')
 
     return view
 

@@ -1,12 +1,15 @@
 #!/usr/bin/env ipy
 # -*- coding: utf-8 -*-
-# $Id: API.py 487 2013-05-22 06:05:06Z Bear $
+# $Id: API.py 1841 2018-03-20 22:46:23Z Kevin $
 
 import clr
 import sys, os
 
 sys.path.append(os.path.abspath('.'))
 clr.AddReference('TSMS_API')
+
+# add a environment variable let log4let make log file in right path
+os.environ.update({'PWD': os.getcwd()})
 
 sys.path.append(os.path.abspath('.\\TSMS_API_Web\\bin\\Debug'))
 clr.AddReference('TSMS_API_Web')
@@ -66,11 +69,11 @@ def showTable(tableView, others=[], output=''):
             f.write(utf8(unicode(x)))
     return x
     
-def showChart(chartView):
-    print '圖例數:', len(chartView.Values)
-    for i, v in enumerate(chartView.Values):
+def showChart(chartView, attr='Values'):
+    print '圖例數:', len(getattr(chartView, attr))
+    for i, v in enumerate(getattr(chartView, attr)):
         print '圖例%d 共有 %d 個資料點' % (i + 1, len(v))
-        
+
 def showMainMenu(fid, subn, handlerDict):
     for i in range(subn):
         n = i + 1
