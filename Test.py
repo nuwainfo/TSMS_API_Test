@@ -14,7 +14,14 @@ def getMessage(objectName, attrName):
     return msg
 
 class TestAPI(unittest.TestCase):
-
+    """
+    第二期功能為
+    func228, func229, func2210, func2211
+    func235, func236, func237, func238
+    func213, func214
+    func224, func225 雨量查詢擴充功能
+    ，其餘為第一期功能
+    """
     def testCommon(self):
         from API import enginerringOffice
         from API import tunnel
