@@ -1,6 +1,6 @@
 #!/usr/bin/env ipy
 # -*- coding: utf-8 -*-
-# $Id: Bookbase.py 1090 2015-12-16 08:35:54Z Bear $
+# $Id: Bookbase.py 1898 2018-06-26 05:40:32Z Kevin $
 
 import sys
 
@@ -168,8 +168,44 @@ def f2_9_5():
     showTable(view.PhotoRecords, others=[('檔案路徑', 'File'),])
     print  
         
-    return view    
+    return view
+
+def f2_9_7():
+    tunnelId = 5  # 雪山隧道
+
+    from System.Collections.Generic import List
+
+    structureIds = List[int]([24, 24, 24])  # 南下線
+    projectIds = List[int]([8, 8, 8])  # 103~104頭城段隧道檢監測工作_104第一階段巡查工作
+    startSectorIds = List[int]([1, 11, 21])
+    endSectorIds = List[int]([10, 20, 30])
+
+    view = bookbaseSrv.QueryWebView7(
+        tunnelId, structureIds, projectIds, startSectorIds, endSectorIds)
+
+    def showProject(_WebView7):
+        print _WebView7.Option0RightPic
+        print _WebView7.Option0LeftPic
+        print _WebView7.Option1RightPic
+        print _WebView7.Option1LeftPic
+
+        if _WebView7.Option2Records:
+            showTable(_WebView7.Option2Records)
+
+        if _WebView7.Option3Records:
+            showTable(_WebView7.Option3Records)
+
+        if _WebView7.Option3Chart:
+            showChart(_WebView7.Option3Chart)
+
+        if _WebView7.Option4Records:
+            showTable(_WebView7.Option4Records)
+
+    showProject(view.project1)
+    showProject(view.project2)
+    showProject(view.project3)
+
         
 if __name__ == '__main__':
-    showMainMenu('2.9', 5, locals())
+    showMainMenu('2.9', 7, locals())
     

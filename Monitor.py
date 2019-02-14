@@ -1,6 +1,6 @@
 #!/usr/bin/env ipy
 # -*- coding: utf-8 -*-
-# $Id: Monitor.py 1809 2018-01-10 07:38:58Z Kevin $
+# $Id: Monitor.py 2209 2019-02-14 06:19:50Z Kevin $
 
 import sys
 
@@ -92,7 +92,7 @@ def f2_2_2():
 def f2_2_3():
     monitorId = 3
     # C1
-    kws = select(tunnelId, monitorId)    
+    kws = select(tunnelId, monitorId)
     view = monitorSrv.QueryWebView3(**kws)    
     print
     
@@ -110,9 +110,13 @@ def f2_2_3():
     
 def f2_2_4():
     monitorId = 4
+    rainInstallId = 1
+    rainUnitIndex = 1
     # NWPS1
     kws = select(tunnelId, monitorId)
     kws['chartNum'] = 3
+    kws['rainInstallId'] = rainInstallId
+    kws['rainUnitIndex'] = rainUnitIndex
     view = monitorSrv.QueryWebView4(**kws)    
     print
     
@@ -142,10 +146,11 @@ def f2_2_4():
         print "警戒值圖形資料:"    
         showChart(view.WarningChart)
         print    
-        
-    print "測值大於警戒值資料表:"
-    showTable(view.WarningData)
-    print                
+
+    if view.WarningData:
+        print "測值大於警戒值資料表:"
+        showTable(view.WarningData)
+        print
         
     # 20130827
     print "每6小時間隔顯示"
@@ -189,15 +194,28 @@ def f2_2_4():
         kws = select(tunnelId, monitorId, instInfoN=1)    
     except TSMS_API.Web.QueryService.DataNotExistException, e:
         print 'NWPS2', 'DataNotExistException', 'passed' # OK.
-    print    
+    print
+
+    print '降雨量資料'
+    showTable(view.RainFallRecords)
+    print
+
+    print '雨量歷時圖'
+    showChart(view.RainFallChart)
+    print
 
     return view        
 
 def f2_2_5():
     monitorId = 6
+    rainInstallId = 1
+    rainUnitIndex = 1
+
     # OCM3
-    kws = select(tunnelId, monitorId, 2)    
-    view = monitorSrv.QueryWebView5(**kws)    
+    kws = select(tunnelId, monitorId, 2)
+    kws['rainInstallId'] = rainInstallId
+    kws['rainUnitIndex'] = rainUnitIndex
+    view = monitorSrv.QueryWebView5(**kws)
     print
     
     print "儀器安裝位置圖1:"
@@ -227,7 +245,7 @@ def f2_2_5():
     
     # 20130827
     print "每12小時間隔顯示"
-    kws['dataStep'] = 120    
+    kws['dataStep'] = 120
     view2 = monitorSrv.QueryWebView5(**kws)    
     print
     
@@ -254,8 +272,16 @@ def f2_2_5():
 
     print "累積流量測量表:"
     showTable(view2.MonitorStackWaterData)
-    print        
-    
+    print
+
+    print '降雨量資料'
+    showTable(view.RainFallRecords)
+    print
+
+    print '雨量歷時圖'
+    showChart(view.RainFallChart)
+    print
+
     return view
     
 def f2_2_6():
@@ -317,8 +343,8 @@ def f2_2_8():
     from System import Array
     from System import DateTime
 
-    installInfos = TSMS_API.Monitor.Service.FindMonitorInstallInfo(
-        tunnelId, monitorType, 0)
+    installInfos = TSMS_API.Web.Monitor.Service.FindInstallInfos(
+        tunnelId, monitorType, False)
     installInfoId = installInfos[0].Key  # 1
 
     arrayDates = Array[DateTime]([
@@ -333,10 +359,132 @@ def f2_2_8():
     showTable(view.microDispRecords)
 
     print '微變位圖'
-    showChart(view.XYChart, attr='XYValues')
+    showChart(view.DispChart.XYChart1, attr='XYValues')
+    showChart(view.DefChart.XYChart1, attr='XYValues')
+
+    return view
+
+
+def f2_2_9():
+    monitorType = 10
+
+    installInfos = monitorSrv.FindInstallInfos(tunnelId, monitorType, 0)
+    installInfoId = installInfos[0].Key  # 1
+
+    dates = monitorSrv.QueryMonitorDateRangeCommon(tunnelId, installInfoId, monitorType)
+    endDate = dates[1]  # MaxDate
+    startDate = endDate.AddMonths(-1)
+    dataStep = 24
+
+    view = monitorSrv.QueryWebView9(
+        tunnelId, installInfoId, monitorType, startDate, endDate, dataStep)
+
+    print '\n地質資訊'
+    print view.InstallInfo
+
+    print '\n天花板變位安裝示意圖'
+    print view.CeilingInstallDiagram
+
+    print '\n傾斜移角度變化量歷時曲線圖'
+    showChart(view.TimeChart1)
+
+    print '\n位移變化量歷時曲線圖'
+    showChart(view.TimeChart2)
+
+    print '\n監測資料'
+    showTable(view.CeilingDefRecords)
+
+    print '\n各儀器最大變位測值資料'
+    showTable(view.CeilingDefMaxValuesRecords)
+
+    return view
+
+
+def f2_2_10():
+    monitorType = 8
+    tunnelId = 2
+
+    installInfos = monitorSrv.FindMonitorInstallInfo(tunnelId, monitorType)
+    installInfoId = installInfos[0].Key
+    print(installInfos[0].Value)
+
+    monitorPoint = monitorSrv.FindMonitorPoint(
+        tunnelId, monitorType, installInfoId)
+    monitorPointId = monitorPoint[0].Key
+
+    surveyDates = monitorSrv.GetLevelingSurveyDate(
+        tunnelId, installInfoId, monitorPointId)
+
+    from System.Collections.Generic import List
+    from System import DateTime
+    from System import Array
+
+    datesList = List[DateTime]()
+    for date in surveyDates:
+        datesList.Add(date.Value)
+
+    levelingStations = monitorSrv.GetLevelingStation(
+        tunnelId, installInfoId, monitorPointId)
+    startStation = levelingStations[0].Value
+    endStation = levelingStations[len(levelingStations) - 1].Value
+
+    print(datesList.ToArray())
+    view = monitorSrv.QueryWebView10(
+        tunnelId, monitorType, installInfoId, monitorPointId,
+        datesList.ToArray(), startStation, endStation)
+
+    print '\n地質資訊'
+    print view.InstallInfo
+
+    print '\n路面沉陷觀測資料'
+    showTable(view.LevelingRecords)
+
+    print '\n測值大於警戒值總表'
+    showTable(view.WarningRecords)
+
+    print '\n路面變位速率圖'
+    showChart(view.LevelingChart, attr='XYValues')
+
+    print '\n歷時變位速率圖'
+    showChart(view.DateLevelingChart1)
+
+    print '\n歷時變位量圖'
+    showChart(view.DateLevelingChart2)
+
+    return view
+
+
+def f2_2_11():
+    # monitorType = 11
+    tunnelId = 24
+    installId = 3
+
+    from System import DateTime
+    startDate = DateTime(2017, 2, 6)
+    endDate = DateTime(2018, 2, 6)
+
+    view = monitorSrv.QueryWebView11(tunnelId, installId, startDate, endDate)
+
+    print '\n地質資訊'
+    print view.InstallInfo
+
+    print '\n監測資料'
+    showTable(view.GeoDefRecords)
+
+    print '\nGoogle Map 測站資料'
+    showTable(view.GeoDefMarksRecords)
+
+    print '\n歷時曲線圖(East)'
+    showChart(view.TimeChartEast)
+
+    print '\n歷時曲線圖(North)'
+    showChart(view.TimeChartNorth)
+
+    print '\n歷時曲線圖(Up)'
+    showChart(view.TimeChartUp)
 
     return view
 
 
 if __name__ == '__main__':
-    showMainMenu('2.2', 8, locals())
+    showMainMenu('2.2', 11, locals())

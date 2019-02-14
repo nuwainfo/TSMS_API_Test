@@ -1,6 +1,6 @@
 #!/usr/bin/env ipy
 # -*- coding: utf-8 -*-
-# $Id: Patrol.py 601 2013-07-09 06:11:27Z Bear $
+# $Id: Patrol.py 1951 2018-07-30 02:19:01Z Kevin $
 
 import sys
 import os
@@ -133,4 +133,3 @@ def f2_1_2():
         
 if __name__ == '__main__':
     showMainMenu('2.1', 2, locals())
-    

@@ -1,6 +1,6 @@
 #!/usr/bin/env ipy
 # -*- coding: utf-8 -*-
-# $Id: Test.py 1840 2018-03-20 22:41:14Z Kevin $
+# $Id: Test.py 2209 2019-02-14 06:19:50Z Kevin $
 
 import unittest
 import datetime
@@ -20,7 +20,7 @@ class TestAPI(unittest.TestCase):
         from API import tunnel
         from API import tunnelHierarcy
         
-        self.assertEqual(enginerringOffice.Value, u"北區工程處")
+        self.assertEqual(enginerringOffice.Value, u"北區養護工程分局")
         self.assertEqual(tunnelHierarcy.section, u"頭城工務段")
         self.assertEqual(tunnelHierarcy.freeway, u"國道5號")        
         self.assertEqual(tunnel.Value, u"雪山隧道")
@@ -85,7 +85,6 @@ class TestMonitor(unittest.TestCase):
         self.assertTrue(v.MonitorSingleWaterData)
         
         self.assertTrue(v.WarningChart)
-        self.assertTrue(v.WarningData)        
         
     def test2_2_5(self):
         from Monitor import f2_2_5
@@ -117,7 +116,42 @@ class TestMonitor(unittest.TestCase):
 
         self.assertTrue(v.InstallInfo)
         self.assertTrue(v.microDispRecords)
-        self.assertTrue(v.XYChart)
+        self.assertTrue(v.DispChart.XYChart1)
+        self.assertTrue(v.DefChart.XYChart1)
+
+    def test2_2_9(self):
+        from Monitor import f2_2_9
+
+        v = f2_2_9()
+
+        self.assertTrue(v.InstallInfo)
+        self.assertTrue(v.CeilingInstallDiagram)
+        self.assertTrue(v.TimeChart1)
+        self.assertTrue(v.TimeChart2)
+        self.assertTrue(v.CeilingDefRecords)
+        self.assertTrue(v.CeilingDefMaxValuesRecords)
+
+    def test2_2_10(self):
+        from Monitor import f2_2_10
+        v = f2_2_10()
+
+        self.assertTrue(v.InstallInfo)
+        self.assertTrue(v.LevelingRecords)
+        self.assertTrue(v.WarningRecords)
+        self.assertTrue(v.LevelingChart)
+        self.assertTrue(v.DateLevelingChart1)
+        self.assertTrue(v.DateLevelingChart2)
+
+    def test2_2_11(self):
+        from Monitor import f2_2_11
+        v = f2_2_11()
+
+        self.assertTrue(v.InstallInfo)
+        self.assertTrue(v.GeoDefRecords)
+        self.assertTrue(v.GeoDefMarksRecords)
+        self.assertTrue(v.TimeChartEast)
+        self.assertTrue(v.TimeChartNorth)
+        self.assertTrue(v.TimeChartUp)
 
 class TestInspect(unittest.TestCase):
 
@@ -182,6 +216,31 @@ class TestInspect(unittest.TestCase):
 
         self.assertTrue(v.ImageInfoRecord)
 
+    def test2_3_7(self):
+        from Inspect import f2_3_7
+
+        v = f2_3_7()
+
+        def assertProject(self, project):
+            self.assertTrue(project.Option0RightPic)
+            self.assertTrue(project.Option0LeftPic)
+            self.assertTrue(project.Option1RightPic)
+            self.assertTrue(project.Option1LeftPic)
+            self.assertTrue(project.Option3Chart)
+            self.assertTrue(project.Option2Records)
+            self.assertTrue(project.Option4Records)
+
+        assertProject(self, v.project1)
+        assertProject(self, v.project2)
+        assertProject(self, v.project3)
+
+    def test2_3_8(self):
+        from Inspect import f2_3_8
+
+        v = f2_3_8()
+
+        self.assertTrue(v.Records)
+
 class TestShaft(unittest.TestCase):
 
     def test2_4_1(self):
@@ -194,7 +253,6 @@ class TestShaft(unittest.TestCase):
         self.assertTrue(v.ShaftRecords)
         self.assertTrue(v.RefImage)
         self.assertTrue(v.MediaRecords)
-        
         
 class TestPattern(unittest.TestCase):
 

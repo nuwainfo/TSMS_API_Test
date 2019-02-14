@@ -1,108 +1,39 @@
-
-# TSMS_API_WEB 測試說明
-
-> 此專案為測試 TSMS_API.dll 使用的測試專案
->
-> 有 Bookbase.py, Geology.py 等等的模組，
-> 分別對應不同的功能測試
->
-> 而 Test.py 為整合以上 test cases 的總體測試，
-> 因此測試時只要跑這個檔案就好了 
+# TSMS_API
 
 
-## 測試步驟
+## 環境設置
 
-1. 確認資料庫連線，確認使用與資料庫資料對應的 API (TSMS_API.dll)
+> 以下提到的資料 (dll檔, mdf檔)，
+> 都可以在公司的 [Google Drive](https://drive.google.com/drive/folders/1sFkGbrx-y_jS64qBEkq9rF0ZUn6klMW7) 找到
 
-   在 Config.ini 中，設定 SQL SERVER 的連線位址
-   
-   ![](img/ConfigSetting.PNG)
-   
-   (圖中 `127.0.0.1,1433` 處應設定為 SERVER 連線的位置，
-    `User ID=TSMS;Password=TSMS` 則為進入資料庫的帳號密碼)
+1. 確認使用當前版本的 `TSMS_API.dll` (在根目錄下的)
 
-2. 使用 Iron Python 跑 Test.py 檔
+2. 確認使用當前版本的 `TSMS_TANFB.mdf` 及 `TSMS_TANFB.ldf` (可使用 SQL Server Studio 設定)
 
-   請先下載 Iron Python 並安裝完成，
-   [點我前往 Iron Python 官網](http://ironpython.net/)
-   
-   請使用 Iron Python 裡的 ipy.exe，執行 Test.py
-   
-   以 Windows 系統為例，開啟 cmd，請先到 Test.py 的資料夾下，並使用以下指令
-   
-   ![](img/IronPythonInCmd.PNG)
-   
-   (圖中第一項指令為往 ipy.exe 的路徑，第二格參數放 Test.py)
-   
-   執行成功的話，就會開始跑測試程式
-   
-   ![](img/IronPythonProcess.PNG)
-      
-3. 確認結果
+   相關資料庫設定請見 [TSMS_TANFB 整體架構](https://code.nuwainfo.com/trac/phantasos/wiki/TSMS_TANFB%E6%95%B4%E9%AB%94%E6%9E%B6%E6%A7%8B)
 
-   全數通過測試，應顯示
+3. 設定 `Config.ini` (在根目錄下)，
    
-   ![](img/TestsPassed.jpg)
+   其中 `OutputDirectory` 指明創造出來的照片等等所放的資料夾；
    
-   而假使有錯誤的話會顯示
+   `DataFileRootDir` 指明當伺服器要求靜態檔案時，要去哪個地方搜尋；
    
-   ![](img/TestsFailed.PNG)
-   
-   而往上就能看到是哪些方法(函式)出錯
-   
-   ![](img/TestsFailed2.PNG)
-   
-   (舉例來說，這張圖顯示了 test2_8_2 和 test2_2_2 出錯，
-   
-   而第一個產生的例外為 `Exception: DataNotExistException`)
+   `ConnectionString` 為設定與資料庫連線的字串，
+   `Data Source` 指明連線的位址與 Port，`User Name` 與 `Password` 分別為該資料庫使用者的帳號密碼
 
+## 更新版本步驟
 
-## Debug 步驟
+> 圖文說明請看 [更新 TSMS_API_Web 流程
+](https://code.nuwainfo.com/trac/phantasos/wiki/TSMS_TANFB%E6%95%B4%E9%AB%94%E6%9E%B6%E6%A7%8B#%E6%9B%B4%E6%96%B0TSMS_API_Web%E6%B5%81%E7%A8%8B)
 
-> 我們在測試檔的部分，增加了更多訊息，
-> 並在出錯時，API 也會寫下 log 檔以利接下來的除錯。
-> 以下將會以 test2_3_3 作為範例說明：
+1. 更改 `TSMS_API_Web/Properties/AssemblyInfo.cs` 的版本號
 
-1. 查看錯誤
+2. Commit 後看 Revision 號碼
    
-   ![](img/Debug1.PNG)
-   
-   可以由此看到 `test2_3_3` 出錯，例外類別是 `DataNotExistException`，
-   
-   時間和出錯函式都有標明，可以看到是 `QueryWebview3` 出了問題，是在 `06:51:41` 出的問題，
-   
-   不過這裡的函式是 `TSMS_Web.API` 裡面的，並非 `TSMS.API` 的，
-   
-   這時候就需要到 `API.log` 查看更深入的資訊。
+3. 在剛剛的 `TSMS_API_Web/Properties/AssemblyInfo.cs` 改 Revision 號
 
-2. 查看 API.log
+4. 重編譯專案 (rebuild)
 
-   此時可以看到跟目錄下多了一個 API.log
+   (點選 `Build/Batch Build`，勾選 Debug 和 Release 版本，選擇 Rebuild)
 
-   ![](img/Debug2.PNG)
-   
-   打開後，使用剛剛的時間搜尋，可以發現這時候呼叫了一次 API，
-   
-   ![](img/Debug3.PNG)
-   
-   後面帶的會是「相關物件的名子：呼叫的 API」
-   
-   ![](img/Debug4.PNG)
-   
-   上圖中，可以呼叫這個 API 是要取得 `WebView3.TunSectorEvaluationRecord`，
-   
-   有時候如果 testcase 結果顯示搜尋不到某些物件為空，就需要以這項去搜尋，如 test2_9_4:
-   
-   ![](img/Debug6.PNG)
-   
-   此例中，剛剛並無如此顯示，所以這一項暫時用不到。
-   
-   ![](img/Debug5.PNG)
-   
-   由此圖可以看出呼叫的 API 是
-   
-   `TSMS_API.Inspect.QueryService.QueryTunSectorEvaluationData(structureId=26, projectId=4, startSectorId=1, endSectorId=5, comparisonProjectId=0)`
-
-   因此可能要檢查 `QueryTunSectorEvaluationData` 在帶這些參數時，發生了甚麼問題，去做進一步的處理。
-   
-   
+5. 最後再 commit 一次

@@ -1,6 +1,6 @@
 #!/usr/bin/env ipy
 # -*- coding: utf-8 -*-
-# $Id: Inspect.py 1840 2018-03-20 22:41:14Z Kevin $
+# $Id: Inspect.py 2209 2019-02-14 06:19:50Z Kevin $
 
 import clr
 import datetime
@@ -273,8 +273,8 @@ def f2_3_5():
     enginerringOffice = TSMS_API.Web.QueryService.FindALLEngineeringOffice()[0]
     enginerringOfficeId = enginerringOffice.Key
 
-    # 石碇隧道
-    tunnel = TSMS_API.Web.QueryService.FindTunnelsByEnginerringOffice(enginerringOfficeId)[1]
+    # 彭山隧道
+    tunnel = TSMS_API.Web.QueryService.FindTunnelsByEnginerringOffice(enginerringOfficeId)[3]
     tunnelId = tunnel.Key
     sectionId = TSMS_API.API.Service.FindSectionidByTunid(tunnelId)
     tunnelHierarcy = TSMS_API.Web.QueryService.GetTunnelHierarcy(tunnelId)
@@ -283,25 +283,24 @@ def f2_3_5():
     print '國道: %s' % tunnelHierarcy.freeway
     print '遂道: %s (%d)' % (tunnel.Value, tunnelId)
 
-    # 南下線管線廊道
-    structure = TSMS_API.Web.QueryService.FindGalleryStructures(tunnelId)[0]
+    # 北上線管線廊道
+    structure = TSMS_API.Web.QueryService.FindGalleryStructures(tunnelId)[1]
     structureId = structure.Key
     print '結構物: %s (%d)' % (structure.Value, structureId)
 
-    proj = TSMS_API.Web.QueryService.FindProjectsByGallery(structureId)[0]
+    # 2050年TEST_2050測試專案
+    proj = TSMS_API.Web.QueryService.FindProjectsByGallery(tunnelId, structureId)[0]
     projId = proj.Key
     print '本期檢測專案: %s (%d)' % (proj.Value, projId)
 
-    # GS001
     startSector = TSMS_API.Web.QueryService.FindSectors(structureId)[0]
     print '區段編號(自): %s (%d)' % (startSector.Value, startSector.Key)
 
-    # GS008
     endSector = TSMS_API.Web.QueryService.FindSectors(structureId)[7]
     print '區段編號(至): %s (%d)' % (endSector.Value, endSector.Key)
 
     view = inspectSrv.QueryWebView5(tunnelId, structureId, projId,
-                                    startSector.Key, endSector.Key)
+                                    startSector.Key, endSector.Key, 0, False, True)
     print
 
     print "損傷圖右半部:"
@@ -324,38 +323,97 @@ def f2_3_6():
     enginerringOffice = TSMS_API.Web.QueryService.FindALLEngineeringOffice()[0]
     enginerringOfficeId = enginerringOffice.Key
 
-    # 彭山隧道
-    tunnel = TSMS_API.Web.QueryService.FindTunnelsByEnginerringOffice(enginerringOfficeId)[3]
+    # 石碇隧道
+    tunnel = TSMS_API.Web.QueryService.FindTunnelsByEnginerringOffice(enginerringOfficeId)[1]
     tunId = tunnel.Key
 
     # 北上線
     structures = TSMS_API.API.Service.FindStructuresName(tunId, 0)
     structureId = structures[1].Key
 
-    #
-    projects = TSMS_API.API.Service.FindProjectsByStructure(tunId, structureId)
-    projectId = projects[0].Key
-
-    # N046 ~ N056
-    sectors = TSMS_API.API.Service.FindSectorName(structureId, 0)
-    sectorStartId = sectors[45].Key
-    sectorEndId = sectors[55].Key
+    # 2050年TEST_2050測試專案
+    project = TSMS_API.API.Service.FindProjectsByStructure(tunId, structureId)[4]
+    projectId = project.Key
 
     #
-    startStation = TSMS_API.API.Service.FindStationBySectorid(tunId, sectorStartId)[0].Value
-    endStation = TSMS_API.API.Service.FindStationBySectorid(tunId, sectorEndId)[0].Value
+    startStation = 795
+    endStation = 3515
 
-    print startStation
-    print endStation
+    print '遂道: %s (%d)' % (tunnel.Value, tunnelId)
+    print '安檢專案: %s (%d)' % (project.Value, projectId)
+    print "區段里程： %d 至 %d" % (startStation, endStation)
 
     # search
-    view = inspectSrv.QueryWebView6(tunId, projectId, sectorStartId, sectorEndId)
+    view = inspectSrv.QueryWebView6(structureId, projectId, startStation, endStation)
 
     for r in view.ImageInfoRecord.Rows:
         print r.Key, r.Value
 
     return view
 
+def f2_3_7():
+    from System.Collections.Generic import List
+    tunnelId = 5  # 雪山隧道
+    structureIds = List[int]([24, 24, 24])  # 南下線
+    projectIds = List[int]([3, 4, 8])
+    startSectorIds = List[int]([70, 70, 70])
+    endSectorIds = List[int]([100, 100, 100])
+    view = inspectSrv.QueryWebView7(
+        tunnelId, structureIds, projectIds, startSectorIds, endSectorIds)
+
+    def showProject(project):
+        print '隧道異狀展開圖'
+        print project.Option0RightPic
+        print project.Option0LeftPic
+        print
+
+        print '隧道區段分級展開圖'
+        print project.Option1RightPic
+        print project.Option1LeftPic
+        print
+
+        print '隧道異狀數量百分比圖'
+        showChart(project.Option3Chart)
+        print
+
+        print '隧道區段異狀分級統計圖'
+        showTable(project.Option2Records)
+        print
+
+        print '隧道單一區段異狀數量圖'
+        showTable(project.Option4Records)
+        print
+
+    print '查詢一'
+    showProject(view.project1)
+    print
+
+    print '查詢二'
+    showProject(view.project2)
+    print
+
+    print '查詢三'
+    showProject(view.project3)
+    print
+
+    return view
+
+def f2_3_8():
+    tunnelId = 5  # 雪山隧道
+    structureId = 24  # 南下線
+    projectId = 2000  # 2050年TEST_2050測試專案
+
+    from System import DateTime
+    startDate = DateTime(2018, 1, 1)
+    endDate = DateTime(2018, 12, 31)
+
+    view = inspectSrv.QueryWebView8(structureId, projectId, startDate, endDate)
+
+    print '排水設施資料表'
+    showTable(view.Records)
+    print
+
+    return view
 
 if __name__ == '__main__':
-    showMainMenu('2.3', 6, locals())
+    showMainMenu('2.3', 8, locals())

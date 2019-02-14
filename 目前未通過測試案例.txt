@@ -1,0 +1,54 @@
+
+======================================================================
+ERROR: test2_3_3 (__main__.TestInspect)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:/Users/Kevin/Documents/Nuwainfo/Phantasos/trunk/Sinotech/TSMS_TANFB/Source/TSMS_API_Web/Test.py", line 179, in test2_3_3
+    v = f2_3_3()
+  File "C:\Users\Kevin\Documents\Nuwainfo\Phantasos\trunk\Sinotech\TSMS_TANFB\Source\TSMS_API_Web\Inspect.py", line 200, in f2_3_3
+    view = _log(inspectSrv.QueryWebView3)(
+  File "C:\Users\Kevin\Documents\Nuwainfo\Phantasos\trunk\Sinotech\TSMS_TANFB\Source\TSMS_API_Web\Inspect.py", line 57, in _wrapper
+    raise e
+Exception: 例外類別：DataNotExistException
+時間：2019-02-14 10:37:31.153000
+出錯函式：TSMS_API.Web.Inspect.Service.QueryWebView3(projectId=4, tunnelId=5, startSectorId=1, structureId=26, endSectorId=5)
+詳細 API 呼叫的參數及過程請參照 "API.log"
+
+===== 以下 API 回傳空串列 (雪山隧道、導坑、102~103頭城段隧道檢監測工作_103年第二階段巡查工作、P0001 ~ P0005 無 區段健全度資料表 資料) =====
+TSMS_API.Inspect.QueryService.QueryTunSectorEvaluationData(26, 4, 1, 5, 0).Master.Rows
+回傳值：List[Inner2]()
+
+
+======================================================================
+ERROR: test2_1_2 (__main__.TestPatrol)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:/Users/Kevin/Documents/Nuwainfo/Phantasos/trunk/Sinotech/TSMS_TANFB/Source/TSMS_API_Web/Test.py", line 43, in test2_1_2
+    v = f2_1_2()
+  File "C:\Users\Kevin\Documents\Nuwainfo\Phantasos\trunk\Sinotech\TSMS_TANFB\Source\TSMS_API_Web\Patrol.py", line 113, in f2_1_2
+    update(0, 'a?|')
+  File "C:\Users\Kevin\Documents\Nuwainfo\Phantasos\trunk\Sinotech\TSMS_TANFB\Source\TSMS_API_Web\Patrol.py", line 109, in update
+    ok = patrolSrv.UpdateFrequentInspectRecord(id, tunnelId, values)
+SystemError: 字串未被辨認為有效的 DateTime。
+
+===== 以下 API 出現不合理的日期格式 =====
+TSMS_API.MaintainData.QueryService.QueryFrequentInspectRecords(5).Master.Rows[0].Data1
+回傳值(錯誤)：'03  2 2013 1'
+TSMS_API.MaintainData.QueryService.QueryFrequentInspectRecords(5).Master.Rows[1].Data1
+回傳值(正確)：'2013/05/01'
+
+
+======================================================================
+ERROR: test2_4_1 (__main__.TestShaft)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:/Users/Kevin/Documents/Nuwainfo/Phantasos/trunk/Sinotech/TSMS_TANFB/Source/TSMS_API_Web/Test.py", line 249, in test2_4_1
+    v = f2_4_1()
+  File "C:\Users\Kevin\Documents\Nuwainfo\Phantasos\trunk\Sinotech\TSMS_TANFB\Source\TSMS_API_Web\Shaft.py", line 20, in f2_4_1
+    proj = shaftSrv.FindProjects(tunnelId, shaftId)[0]
+ValueError: 索引超出範圍。必須為非負數且小於集合的大小。
+參數名稱: index
+
+===== 以下 API 回傳空串列 (雪山隧道、三號豎井排氣井 無 專案 資料) =====
+TSMS_API.API.Service.FindProjectsByShaft(5, 5)
+回傳值：List[KeyValuePair[int, str]]()
