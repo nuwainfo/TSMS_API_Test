@@ -1,6 +1,6 @@
 #!/usr/bin/env ipy
 # -*- coding: utf-8 -*-
-# $Id: Bookbase.py 1898 2018-06-26 05:40:32Z Kevin $
+# $Id: Bookbase.py 2220 2019-02-21 09:21:30Z Kevin $
 
 import sys
 
@@ -11,12 +11,57 @@ from API import showTable, showChart, showMainMenu
 
 bookbaseSrv = TSMS_API.Web.Bookbase.Service
 
+import clr
+import datetime
+
+def _log(theFunction):
+    def _wrapper(*args, **kwds):
+        try:
+            returnval = theFunction(*args, **kwds)
+            return returnval
+        except Exception as e:
+            paramsDict = {}
+            params = None
+
+            # https://stackoverflow.com/questions/10920499/
+            # get-built-in-method-signature-python
+
+            clrType = clr.GetClrType(bookbaseSrv)
+            for m in clrType.GetMethods():
+                if m.Name == theFunction.__name__:
+                    params = m.GetParameters()
+
+            for i in range(params.Count):
+                if i == len(args):
+                    # 沒有預設值會回傳物件 DBNull
+                    if params[i].DefaultValue.GetTypeCode() \
+                            != 'System.TypeCode.DBNull':
+                        break
+
+                paramsDict.update({
+                    params[i].Name: args[i]})
+
+            msg = '例外類別：' + str(e)
+            msg += '\n時間：' + str(datetime.datetime.now())
+            msg += ('\n出錯函式：TSMS_API.Web.Bookbase.Service.{}({})'.format(
+                theFunction.__name__,
+                ', '.join(['{}={}'.format(k, v) for k, v in paramsDict.items()])
+            ))
+            msg += '\n詳細 API 呼叫的參數及過程請參照 "API.log"'
+
+            # https://stackoverflow.com/questions/
+            # 6062576/adding-information-to-an-exception
+            e.args = (msg,)
+            raise e
+    return _wrapper
+
+
 def f2_9_1():
     structureType = bookbaseSrv.FindStructureTypes()[0] # 主遂道
     structureTypeId = structureType.Key
     print '結構物類別: %s (%d)' % (structureType.Value, structureTypeId)
     
-    view = bookbaseSrv.QueryWebView1(tunnelId, structureTypeId)
+    view = _log(bookbaseSrv.QueryWebView1)(tunnelId, structureTypeId)
     print
     
     print "起點城市:"                      
@@ -60,7 +105,7 @@ def f2_9_2():
     reportTypeId = reportType.Key
     print '報告書類別: %s (%d)' % (reportType.Value, reportTypeId)
     
-    view = bookbaseSrv.QueryWebView2(sectionId, reportBelongId, reportTypeId, 
+    view = _log(bookbaseSrv.QueryWebView2)(sectionId, reportBelongId, reportTypeId,
                                      tunnelId)
     print
     
@@ -71,7 +116,7 @@ def f2_9_2():
     # By keyword
     keyword = '98年'
     print '關鍵字:', keyword
-    view = bookbaseSrv.QueryWebView2(sectionId, reportBelongId, reportTypeId,  
+    view = _log(bookbaseSrv.QueryWebView2)(sectionId, reportBelongId, reportTypeId,
                                      tunnelId, keyword)
     print
     
@@ -94,7 +139,7 @@ def f2_9_3():
     drawingFigureTypeId = drawingFigureType.Key
     print '圖說特性: %s (%d)' % (drawingFigureType.Value, drawingFigureTypeId)    
     
-    view = bookbaseSrv.QueryWebView3(tunnelId, drawingTypeId, drawingStructureTypeId, drawingFigureTypeId)
+    view = _log(bookbaseSrv.QueryWebView3)(tunnelId, drawingTypeId, drawingStructureTypeId, drawingFigureTypeId)
     print
     
     print "峻工圖列表 (%d 筆):" % len(view.BuiltDrawingRecords.Rows)
@@ -104,7 +149,7 @@ def f2_9_3():
     # By keyword
     keyword = '鋼筋圖'
     print '關鍵字:', keyword
-    view = bookbaseSrv.QueryWebView3(tunnelId, drawingTypeId, drawingStructureTypeId, drawingFigureTypeId, 
+    view = _log(bookbaseSrv.QueryWebView3)(tunnelId, drawingTypeId, drawingStructureTypeId, drawingFigureTypeId,
                                      0, 0, keyword)
     print
     
@@ -115,7 +160,7 @@ def f2_9_3():
     return view    
     
 def f2_9_4():
-    view = bookbaseSrv.QueryWebView4(sectionId, tunnelId)
+    view = _log(bookbaseSrv.QueryWebView4)(sectionId, tunnelId)
     print
        
     def show(select):
@@ -139,7 +184,7 @@ def f2_9_4():
     keyword = 'A類'
     print '關鍵字:', keyword
     
-    view = bookbaseSrv.QueryWebView4(sectionId, tunnelId, keyword)
+    view = _log(bookbaseSrv.QueryWebView4)(sectionId, tunnelId, keyword)
     print
     
     show(view.MaintainTypeRecords[0]) # 人行橫坑門修繕(A類)    
@@ -151,7 +196,7 @@ def f2_9_5():
     photoTypeId = photoType.Key
     print '照片類別: %s (%d)' % (photoType.Value, photoTypeId)
     
-    view = bookbaseSrv.QueryWebView5(tunnelId, photoTypeId)
+    view = _log(bookbaseSrv.QueryWebView5)(tunnelId, photoTypeId)
     print
     
     print "照片列表 (%d 筆):" % len(view.PhotoRecords.Rows)
@@ -161,7 +206,7 @@ def f2_9_5():
     # By keyword
     keyword = '地質圖'
     print '關鍵字:', keyword
-    view = bookbaseSrv.QueryWebView5(tunnelId, photoTypeId, keyword)
+    view = _log(bookbaseSrv.QueryWebView5)(tunnelId, photoTypeId, keyword)
     print
     
     print "照片列表 (%d 筆):" % len(view.PhotoRecords.Rows)
@@ -180,7 +225,7 @@ def f2_9_7():
     startSectorIds = List[int]([1, 11, 21])
     endSectorIds = List[int]([10, 20, 30])
 
-    view = bookbaseSrv.QueryWebView7(
+    view = _log(bookbaseSrv.QueryWebView7)(
         tunnelId, structureIds, projectIds, startSectorIds, endSectorIds)
 
     def showProject(_WebView7):

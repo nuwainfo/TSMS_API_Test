@@ -1,9 +1,8 @@
 #!/usr/bin/env ipy
 # -*- coding: utf-8 -*-
-# $Id: Monitor.py 2209 2019-02-14 06:19:50Z Kevin $
+# $Id: Monitor.py 2220 2019-02-21 09:21:30Z Kevin $
 
 import sys
-
 from API import TSMS_API
 from API import tunnelId
 
@@ -14,6 +13,51 @@ monitorSrv = TSMS_API.Web.Monitor.Service
 structure = TSMS_API.Web.QueryService.FindStructures(tunnelId)[1] # 北上線
 structureId = structure.Key
 print '結構物: %s (%d)' % (structure.Value, structureId)
+
+import clr
+import datetime
+
+def _log(theFunction):
+    def _wrapper(*args, **kwds):
+        try:
+            returnval = theFunction(*args, **kwds)
+            return returnval
+        except Exception as e:
+            paramsDict = {}
+            params = None
+
+            # https://stackoverflow.com/questions/10920499/
+            # get-built-in-method-signature-python
+
+            clrType = clr.GetClrType(monitorSrv)
+            for m in clrType.GetMethods():
+                if m.Name == theFunction.__name__:
+                    params = m.GetParameters()
+
+            for i in range(params.Count):
+                if i == len(args):
+                    # 沒有預設值會回傳物件 DBNull
+                    if params[i].DefaultValue.GetTypeCode() \
+                            != 'System.TypeCode.DBNull':
+                        break
+
+                paramsDict.update({
+                    params[i].Name: args[i]})
+
+            msg = '例外類別：' + str(e)
+            msg += '\n時間：' + str(datetime.datetime.now())
+            msg += ('\n出錯函式：TSMS_API.Web.Monitor.Service.{}({})'.format(
+                theFunction.__name__,
+                ', '.join(['{}={}'.format(k, v) for k, v in paramsDict.items()])
+            ))
+            msg += '\n詳細 API 呼叫的參數及過程請參照 "API.log"'
+
+            # https://stackoverflow.com/questions/
+            # 6062576/adding-information-to-an-exception
+            e.args = (msg,)
+            raise e
+    return _wrapper
+
 
 def select(tunnelId, monitorId, instInfoN=0):
     instInfo = monitorSrv.FindInstallInfos(tunnelId, monitorId)[instInfoN]
@@ -35,7 +79,7 @@ def f2_2_1():
     monitorId = 1
     # 9016
     kws = select(tunnelId, monitorId)    
-    view = monitorSrv.QueryWebView1(**kws)                      
+    view = _log(monitorSrv.QueryWebView1)(**kws)
     print    
     
     print "控制點測量表:"                      
@@ -61,7 +105,7 @@ def f2_2_2():
     monitorId = 2
     # NRL0001
     kws = select(tunnelId, monitorId)    
-    view = monitorSrv.QueryWebView2(**kws)    
+    view = _log(monitorSrv.QueryWebView2)(**kws)
     print
     
     printBaseInfo(view)
@@ -93,7 +137,7 @@ def f2_2_3():
     monitorId = 3
     # C1
     kws = select(tunnelId, monitorId)
-    view = monitorSrv.QueryWebView3(**kws)    
+    view = _log(monitorSrv.QueryWebView3)(**kws)
     print
     
     printBaseInfo(view)
@@ -117,7 +161,7 @@ def f2_2_4():
     kws['chartNum'] = 3
     kws['rainInstallId'] = rainInstallId
     kws['rainUnitIndex'] = rainUnitIndex
-    view = monitorSrv.QueryWebView4(**kws)    
+    view = _log(monitorSrv.QueryWebView4)(**kws)
     print
     
     printBaseInfo(view)
@@ -155,7 +199,7 @@ def f2_2_4():
     # 20130827
     print "每6小時間隔顯示"
     kws['dataStep'] = 12
-    view2 = monitorSrv.QueryWebView4(**kws)    
+    view2 = _log(monitorSrv.QueryWebView4)(**kws)
     print        
     
     printBaseInfo(view2)
@@ -215,7 +259,7 @@ def f2_2_5():
     kws = select(tunnelId, monitorId, 2)
     kws['rainInstallId'] = rainInstallId
     kws['rainUnitIndex'] = rainUnitIndex
-    view = monitorSrv.QueryWebView5(**kws)
+    view = _log(monitorSrv.QueryWebView5)(**kws)
     print
     
     print "儀器安裝位置圖1:"
@@ -246,7 +290,7 @@ def f2_2_5():
     # 20130827
     print "每12小時間隔顯示"
     kws['dataStep'] = 120
-    view2 = monitorSrv.QueryWebView5(**kws)    
+    view2 = _log(monitorSrv.QueryWebView5)(**kws)
     print
     
     print "儀器安裝位置圖1:"
@@ -290,7 +334,7 @@ def f2_2_6():
         monitorTypeId = monitorType.Key
         print '監測儀器類別: %s (%d)' % (monitorType.Value, monitorTypeId)
                 
-        view = monitorSrv.QueryWebView6(tunnelId, monitorTypeId)
+        view = _log(monitorSrv.QueryWebView6)(tunnelId, monitorTypeId)
         print
         
         print "示意圖"
@@ -307,7 +351,7 @@ def f2_2_6():
         
         installSection = view.InstallSectionInfoRecords.Rows[installSectionIdx]
         
-        view2 = monitorSrv.QueryWebView6_2(tunnelId, monitorTypeId, installSection.InstallId)
+        view2 = _log(monitorSrv.QueryWebView6_2)(tunnelId, monitorTypeId, installSection.InstallId)
         print
             
         print "%s 測點資料表:" % installSection.Data1
@@ -328,7 +372,7 @@ def f2_2_7():
     monitorTypeId = monitorType.Key
     print '監測儀器類別: %s (%d)' % (monitorType.Value, monitorTypeId)
             
-    view = monitorSrv.QueryWebView7(tunnelId, monitorTypeId)
+    view = _log(monitorSrv.QueryWebView7)(tunnelId, monitorTypeId)
     print
         
     print "監測儀器維修資料表:"                      
@@ -350,7 +394,7 @@ def f2_2_8():
     arrayDates = Array[DateTime]([
         TSMS_API.Monitor.Service.GetMicroDispSurveyDate(tunnelId, installInfoId)[0].Value])
 
-    view = monitorSrv.QueryWebView8(tunnelId, monitorType, installInfoId, arrayDates, 1)
+    view = _log(monitorSrv.QueryWebView8)(tunnelId, monitorType, installInfoId, arrayDates, 1)
 
     print '地質資訊'
     print view.InstallInfo
@@ -376,7 +420,7 @@ def f2_2_9():
     startDate = endDate.AddMonths(-1)
     dataStep = 24
 
-    view = monitorSrv.QueryWebView9(
+    view = _log(monitorSrv.QueryWebView9)(
         tunnelId, installInfoId, monitorType, startDate, endDate, dataStep)
 
     print '\n地質資訊'
@@ -429,7 +473,7 @@ def f2_2_10():
     endStation = levelingStations[len(levelingStations) - 1].Value
 
     print(datesList.ToArray())
-    view = monitorSrv.QueryWebView10(
+    view = _log(monitorSrv.QueryWebView10)(
         tunnelId, monitorType, installInfoId, monitorPointId,
         datesList.ToArray(), startStation, endStation)
 
@@ -463,7 +507,8 @@ def f2_2_11():
     startDate = DateTime(2017, 2, 6)
     endDate = DateTime(2018, 2, 6)
 
-    view = monitorSrv.QueryWebView11(tunnelId, installId, startDate, endDate)
+    view = _log(monitorSrv.QueryWebView11)(
+        tunnelId, installId, startDate, endDate)
 
     print '\n地質資訊'
     print view.InstallInfo

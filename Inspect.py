@@ -1,6 +1,6 @@
 #!/usr/bin/env ipy
 # -*- coding: utf-8 -*-
-# $Id: Inspect.py 2209 2019-02-14 06:19:50Z Kevin $
+# $Id: Inspect.py 2220 2019-02-21 09:21:30Z Kevin $
 
 import clr
 import datetime
@@ -72,8 +72,8 @@ def f2_3_1():
     endSector = TSMS_API.Web.QueryService.FindSectors(structureId)[4]
     print '區段編號(至): %s (%d)' % (endSector.Value, endSector.Key)    
     
-    view = inspectSrv.QueryWebView1(tunnelId, structureId, projId, 
-                                    startSector.Key, endSector.Key)                      
+    view = _log(inspectSrv.QueryWebView1)(tunnelId, structureId, projId,
+                                          startSector.Key, endSector.Key)
     print
 
     print "損傷圖右半部:"
@@ -125,8 +125,9 @@ def f2_3_2():
            str((tunnelId, structureId, structureTypeId, projId, ndtId, 
                start, end, proj2Id)))
                
-    view = inspectSrv.QueryWebView2(tunnelId, structureId, structureTypeId, 
-                                    projId, ndtId, start, end, proj2Id)
+    view = _log(inspectSrv.QueryWebView2)(
+        tunnelId, structureId, structureTypeId,
+        projId, ndtId, start, end, proj2Id)
     print
 
     def showView(view):
@@ -161,8 +162,8 @@ def f2_3_2():
            str((tunnelId, structureId, structureTypeId, projId, ndtId, 
                start, end, proj2Id)))    
                
-    view2 = inspectSrv.QueryWebView2(tunnelId, structureId, structureTypeId, 
-                                     projId, ndtId)
+    view2 = _log(inspectSrv.QueryWebView2)(
+        tunnelId, structureId, structureTypeId, projId, ndtId)
     
     showView(view2)
     
@@ -170,8 +171,9 @@ def f2_3_2():
            str((tunnelId, structureId, structureTypeId, projId, ndtId, 
                start, end, proj2Id)))    
                
-    view3 = inspectSrv.QueryWebView2(tunnelId, structureId, structureTypeId, 
-                                     projId, ndtId, comparisonProjectId=proj2Id)
+    view3 = _log(inspectSrv.QueryWebView2)(
+        tunnelId, structureId, structureTypeId,
+        projId, ndtId, comparisonProjectId=proj2Id)
     
     showView(view3)    
 
@@ -180,21 +182,21 @@ def f2_3_2():
 
 def f2_3_3():
     # 導坑
-    structure = _log(TSMS_API.Web.QueryService.FindStructures)(tunnelId)[2]
+    structure = TSMS_API.Web.QueryService.FindStructures(tunnelId)[2]
     structureId = structure.Key
     print '結構體名稱: %s (%d)' % (structure.Value, structureId)
 
     # 100 年第1階段
-    proj = _log(TSMS_API.Web.QueryService.FindProjects)(structureId)[0]
+    proj = TSMS_API.Web.QueryService.FindProjects(structureId)[0]
     projId = proj.Key
     print '本期檢測專案: %s (%d)' % (proj.Value, projId)
 
     # S001
-    startSector = _log(TSMS_API.Web.QueryService.FindSectors)(structureId)[0]
+    startSector = TSMS_API.Web.QueryService.FindSectors(structureId)[0]
     print '區段編號(自): %s (%d)' % (startSector.Value, startSector.Key)
 
     # S005
-    endSector = _log(TSMS_API.Web.QueryService.FindSectors)(structureId)[4]
+    endSector = TSMS_API.Web.QueryService.FindSectors(structureId)[4]
     print '區段編號(至): %s (%d)' % (endSector.Value, endSector.Key)
 
     view = _log(inspectSrv.QueryWebView3)(
@@ -242,7 +244,7 @@ def f2_3_4():
     projId = proj.Key
     print '本期檢測專案: %s (%d)' % (proj.Value, projId)
         
-    view = inspectSrv.QueryWebView4(tunnelId, otherStructureId, projId)       
+    view = _log(inspectSrv.QueryWebView4)(tunnelId, otherStructureId, projId)
     print
 
     print "南下線里程:"
@@ -299,8 +301,9 @@ def f2_3_5():
     endSector = TSMS_API.Web.QueryService.FindSectors(structureId)[7]
     print '區段編號(至): %s (%d)' % (endSector.Value, endSector.Key)
 
-    view = inspectSrv.QueryWebView5(tunnelId, structureId, projId,
-                                    startSector.Key, endSector.Key, 0, False, True)
+    view = _log(inspectSrv.QueryWebView5)(
+        tunnelId, structureId, projId,
+        startSector.Key, endSector.Key, 0, False, True)
     print
 
     print "損傷圖右半部:"
@@ -344,7 +347,8 @@ def f2_3_6():
     print "區段里程： %d 至 %d" % (startStation, endStation)
 
     # search
-    view = inspectSrv.QueryWebView6(structureId, projectId, startStation, endStation)
+    view = _log(inspectSrv.QueryWebView6)(
+        structureId, projectId, startStation, endStation)
 
     for r in view.ImageInfoRecord.Rows:
         print r.Key, r.Value
@@ -358,7 +362,7 @@ def f2_3_7():
     projectIds = List[int]([3, 4, 8])
     startSectorIds = List[int]([70, 70, 70])
     endSectorIds = List[int]([100, 100, 100])
-    view = inspectSrv.QueryWebView7(
+    view = _log(inspectSrv.QueryWebView7)(
         tunnelId, structureIds, projectIds, startSectorIds, endSectorIds)
 
     def showProject(project):
@@ -407,7 +411,8 @@ def f2_3_8():
     startDate = DateTime(2018, 1, 1)
     endDate = DateTime(2018, 12, 31)
 
-    view = inspectSrv.QueryWebView8(structureId, projectId, startDate, endDate)
+    view = _log(inspectSrv.QueryWebView8)(
+        structureId, projectId, startDate, endDate)
 
     print '排水設施資料表'
     showTable(view.Records)

@@ -57,6 +57,52 @@
    而第一個產生的例外為 `Exception: DataNotExistException`)
 
 
+## Debug 步驟
 
+> 我們在測試檔的部分，增加了更多訊息，
+> 並在出錯時，API 也會寫下 log 檔以利接下來的除錯。
+> 以下將會以 test2_3_3 作為範例說明：
 
+1. 查看錯誤
+   
+   ![](img/Debug1.PNG)
+   
+   可以由此看到 `test2_3_3` 出錯，例外類別是 `DataNotExistException`，
+   
+   時間和出錯函式都有標明，可以看到是 `QueryWebview3` 出了問題，是在 `06:51:41` 出的問題，
+   
+   不過這裡的函式是 `TSMS_Web.API` 裡面的，並非 `TSMS.API` 的，
+   
+   這時候就需要到 `API.log` 查看更深入的資訊。
 
+2. 查看 API.log
+
+   此時可以看到跟目錄下多了一個 API.log
+
+   ![](img/Debug2.PNG)
+   
+   打開後，使用剛剛的時間搜尋，可以發現這時候呼叫了一次 API，
+   
+   ![](img/Debug3.PNG)
+   
+   後面帶的會是「相關物件的名子：呼叫的 API」
+   
+   ![](img/Debug4.PNG)
+   
+   上圖中，可以呼叫這個 API 是要取得 `WebView3.TunSectorEvaluationRecord`，
+   
+   有時候如果 testcase 結果顯示搜尋不到某些物件為空，就需要以這項去搜尋，如 test2_9_4:
+   
+   ![](img/Debug6.PNG)
+   
+   此例中，剛剛並無如此顯示，所以這一項暫時用不到。
+   
+   ![](img/Debug5.PNG)
+   
+   由此圖可以看出呼叫的 API 是
+   
+   `TSMS_API.Inspect.QueryService.QueryTunSectorEvaluationData(structureId=26, projectId=4, startSectorId=1, endSectorId=5, comparisonProjectId=0)`
+
+   因此可能要檢查 `QueryTunSectorEvaluationData` 在帶這些參數時，發生了甚麼問題，去做進一步的處理。
+   
+   
